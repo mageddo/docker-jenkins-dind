@@ -1,6 +1,14 @@
 FROM ubuntu:14.04
 
-MAINTAINER Decheng Zhang <killercentury@gmail.com>
+MAINTAINER Decheng Zhang <killercentury@gmail.com>, Elvis de Freitas <edigitalb@gmail.com>
+
+ENV JENKINS_PATH=/opt/jenkins
+ENV JENKINS_VERSION=2.7.4
+ENV DOCKER_COMPOSE_VERSION=1.8.1
+ENV DOCKER_VERSION=1.12.1
+ENV JENKINS_HOME=/var/lib/jenkins
+
+RUN export TMP_DIR=`mktemp`
 
 # Let's start with some basic stuff.
 RUN apt-get update -qq && apt-get install -qqy \
@@ -8,10 +16,13 @@ RUN apt-get update -qq && apt-get install -qqy \
     ca-certificates \
     curl \
     lxc \
-    iptables
+    iptables \
+    zip \
+    supervisor && rm -rf /var/lib/apt/lists/*
 
 # Install Docker from Docker Inc. repositories.
-RUN curl -sSL https://get.docker.com/ | sh
+RUN curl -L https://get.docker.com/builds/Linux/x86_64/docker-$DOCKER_VERSION.tgz > $TMP_DIR/docker.tgz && \
+	tar -xf $TMP_DIR/docker.tgz --strip 1 -C /usr/local/bin
 
 # Install the wrapper script from https://raw.githubusercontent.com/docker/docker/master/hack/dind.
 ADD ./dind /usr/local/bin/dind
@@ -23,18 +34,13 @@ RUN chmod +x /usr/local/bin/wrapdocker
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
 
-ENV DOCKER_COMPOSE_VERSION 1.3.3
-
-RUN wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
-RUN sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
-RUN apt-get update && apt-get install -y zip supervisor jenkins && rm -rf /var/lib/apt/lists/*
+# Install Jenkins
+curl -L http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.war > $JENKINS_PATH/jenkins.war
 RUN usermod -a -G docker jenkins
-ENV JENKINS_HOME /var/lib/jenkins
-VOLUME /var/lib/jenkins
 
 # Install Docker Compose
 RUN curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-RUN chmod +x /usr/local/bin/docker-compose
+RUN chmod +x /usr/local/bin/docker-compose && rm -rf $TMP_DIR/*
 
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
