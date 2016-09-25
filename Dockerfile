@@ -42,7 +42,7 @@ RUN chmod +x /usr/local/bin/docker-compose && rm -rf $TMP_DIR/*
 
 EXPOSE 8080
 
-RUN groupadd -r jenkins \
+RUN groupadd -r jenkins && groupadd -r docker \
   && useradd -r -g jenkins jenkins && passwd -d jenkins && usermod -a -G docker jenkins && su jenkins
 
 ENV HOME="/var/lib/jenkins"
