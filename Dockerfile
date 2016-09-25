@@ -37,7 +37,7 @@ VOLUME /var/lib/docker
 # Install Jenkins
 RUN mkdir $JENKINS_PATH && \
 	curl -L http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.war > $JENKINS_PATH/jenkins.war && \
-	usermod -a -G docker jenkins
+	groupadd docker && usermod -a -G docker jenkins
 
 # Install Docker Compose
 RUN curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
