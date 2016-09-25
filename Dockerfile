@@ -7,13 +7,11 @@ ENV JENKINS_VERSION=2.7.4
 ENV DOCKER_COMPOSE_VERSION=1.8.1
 ENV DOCKER_VERSION=1.12.1
 ENV JENKINS_HOME=/var/lib/jenkins
+ENV TMP_DIR=/tmp/mageddotemp
 
-RUN export TMP_DIR=`mktemp`
 
 # Let's start with some basic stuff.
-RUN apt-get update -qq && apt-get install -qqy \
-    apt-transport-https \
-    ca-certificates \
+RUN mkdir -p $TMP_DIR && echo "tmpdir=$TMP_DIR" && apt-get update -qq && apt-get install -qqy \
     curl \
     lxc \
     iptables \
