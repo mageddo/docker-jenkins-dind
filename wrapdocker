@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-docker daemon $DOCKER_DAEMON_ARGS
+nohup docker daemon $DOCKER_DAEMON_ARGS &
