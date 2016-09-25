@@ -1,0 +1,15 @@
+version: '2'
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: defreitas/docker-jenkins-dind:v1
+    container_name: jenkins-dind
+    hostname: "jenkins-dind.dev"
+    volumes: 
+      - /opt/jenkins_home:/var/lib/jenkins
+    network_mode: bridge
+    mem_limit: 500m
+    memswap_limit: 0
+    privileged: true
