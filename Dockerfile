@@ -18,7 +18,7 @@ RUN apt-get update -qq && apt-get install -qqy \
     lxc \
     iptables \
     zip \
-    supervisor && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Docker from Docker Inc. repositories.
 RUN curl -L https://get.docker.com/builds/Linux/x86_64/docker-$DOCKER_VERSION.tgz > $TMP_DIR/docker.tgz && \
@@ -36,15 +36,18 @@ VOLUME /var/lib/docker
 
 # Install Jenkins
 RUN mkdir $JENKINS_PATH && \
-	curl -L http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.war > $JENKINS_PATH/jenkins.war && \
-	groupadd docker && usermod -a -G docker jenkins
+	curl -L http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.war > $JENKINS_PATH/jenkins.war
 
 # Install Docker Compose
 RUN curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 RUN chmod +x /usr/local/bin/docker-compose && rm -rf $TMP_DIR/*
 
-ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 EXPOSE 8080
 
-CMD ["/usr/bin/supervisord"]
+RUN groupadd -r jenkins \
+  && useradd -r -g jenkins jenkins && passwd -d jenkins && usermod -a -G docker jenkins && su jenkins
+
+ENV HOME="/var/lib/jenkins"
+ENV USER="jenkins"
+
+CMD ["dind wrapdocker", "chown -R jenkins:jenkins /var/lib/jenkins && java -jar /usr/share/jenkins/jenkins.war"]
